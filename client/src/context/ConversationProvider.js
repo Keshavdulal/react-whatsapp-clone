@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import  useLocalStorage from "../hooks/useLocalStorage";
 import { useContacts } from './ContactsProvider';
 
@@ -10,6 +10,7 @@ export function useConversations() {
 }
 
 export function ConversationProvider({ children }) {
+  const [selectedConvoIndex, setSelectedConvoIndex] = useState(0)
   const [conversations, setConversations] = useLocalStorage('conversations', [])
   const { contacts } = useContacts()
   
@@ -18,21 +19,23 @@ export function ConversationProvider({ children }) {
   }
 
   // export formatted conversations with not just ids but with ids & names
-  const formattedConversations = conversations.map(convo => {
-    console.log('*',convo)
+  const formattedConversations = conversations.map((convo,index) => {
     const recipients = convo.recipients.map(recipient => {
       const contact = contacts.find(contact => contact.id === recipient)
       const name = (contact && contact.name) || recipient
       
       return { id: recipient, name }
     })
+    const selected = index === selectedConvoIndex // boolean
 
-    return {...conversations, recipients}
+    return {...conversations, recipients, selected}
   })
 
   const value = {
     conversations: formattedConversations,
-    createConversation
+    createConversation,
+    setSelectedConvoIndex, //active convo index
+    selectedConvo: formattedConversations[selectedConvoIndex] //active convo
   }
   
   return (
